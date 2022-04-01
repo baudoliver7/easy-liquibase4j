@@ -1,0 +1,17 @@
+assets:
+  settings.xml: baudoliver7/home#assets/settings.xml
+  public.key: baudoliver7/home#assets/public.key
+  private.key: baudoliver7/home#assets/private.key
+architect:
+  - baudoliver7
+install: |
+  javac -version
+release:
+    script: |-
+     [[ "${tag}" =~ ^[0-9]+(\.[0-9]+)*$ ]] || exit -1
+     gpg --import /home/r/public.key
+     gpg --allow-secret-key-import --import --batch --pinentry-mode=loopback /home/r/private.key 
+     mvn versions:set "-DnewVersion=${tag}"
+     git commit -am "${tag}"
+     mvn clean install -Dinvoker.skip
+     mvn clean deploy -Psonatype,baudoliver7 --errors --settings /home/r/settings.xml -Dstyle.color=never
