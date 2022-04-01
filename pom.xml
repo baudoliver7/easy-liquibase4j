@@ -31,7 +31,7 @@ SOFTWARE.
   </parent>
   <groupId>com.baudoliver7</groupId>
   <artifactId>easy-liquibase4j</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <description>Easy use of Liquibase in pure Java</description>
   <url>https://github.com/baudoliver7/easy-liquibase4j</url>
   <inceptionYear>2022</inceptionYear>
