@@ -38,21 +38,50 @@ import org.junit.jupiter.api.Test;
  *
  * @since 0.1
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 final class LiquibaseDataSourceTest {
 
     @Test
-    void generatesSimple() throws SQLException {
+    void generatesAll() throws SQLException {
         final JdbcDataSource src = new JdbcDataSource();
-        src.setUrl("jdbc:h2:~/test");
-        src.setUser("sa");
-        src.setPassword("");
+        src.setUrl("jdbc:h2:mem:test1;DB_CLOSE_DELAY=-1");
+        src.setUser("sa1");
+        src.setPassword("pwd1");
         new LiquibaseDataSource(
-            src,
-            "liquibase/db.changelog-master.xml"
+            src, "liquibase/db.changelog-master.xml"
         );
         try (Connection conn = src.getConnection()) {
             MatcherAssert.assertThat(
+                "Should contain table ad_person",
                 LiquibaseDataSourceTest.tableExists(conn, "ad_person"),
+                Matchers.is(true)
+            );
+            MatcherAssert.assertThat(
+                "Should not contain table ad_user",
+                LiquibaseDataSourceTest.tableExists(conn, "ad_user"),
+                Matchers.is(true)
+            );
+        }
+    }
+
+    @Test
+    void generatesWithContext() throws SQLException {
+        final JdbcDataSource src = new JdbcDataSource();
+        src.setUrl("jdbc:h2:mem:test2;DB_CLOSE_DELAY=-1");
+        src.setUser("sa2");
+        src.setPassword("pwd2");
+        new LiquibaseDataSource(
+            src, "liquibase/db.changelog-master.xml", "admin"
+        );
+        try (Connection conn = src.getConnection()) {
+            MatcherAssert.assertThat(
+                "Should contain table ad_person",
+                LiquibaseDataSourceTest.tableExists(conn, "ad_person"),
+                Matchers.is(false)
+            );
+            MatcherAssert.assertThat(
+                "Should contain table ad_user",
+                LiquibaseDataSourceTest.tableExists(conn, "ad_user"),
                 Matchers.is(true)
             );
         }
