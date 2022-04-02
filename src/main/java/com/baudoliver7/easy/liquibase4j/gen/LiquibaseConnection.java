@@ -48,19 +48,33 @@ public final class LiquibaseConnection extends ConnectionWrap {
      */
     public LiquibaseConnection(
         final Connection origin, final String chgpath) throws SQLException {
-        super(LiquibaseConnection.upgrade(origin, chgpath));
+        this(origin, chgpath, "");
+    }
+
+    /**
+     * Ctor.
+     * <p>We run immediately the script.</p>
+     * @param origin Origin
+     * @param chgpath Change log path relative to resource accessor
+     * @param contexts Contexts
+     * @throws SQLException If fails
+     */
+    public LiquibaseConnection(
+        final Connection origin, final String chgpath, final String contexts) throws SQLException {
+        super(LiquibaseConnection.upgrade(origin, chgpath, contexts));
     }
 
     /**
      * Upgrades database.
      * @param conn Connection
      * @param chgpath Change log path
+     * @param contexts Contexts
      * @return Connection upgraded
      * @throws SQLException If fails
      */
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private static Connection upgrade(
-        final Connection conn, final String chgpath) throws SQLException {
+        final Connection conn, final String chgpath, final String contexts) throws SQLException {
         try {
             final liquibase.database.Database database =
                 DatabaseFactory.getInstance()
@@ -69,7 +83,7 @@ public final class LiquibaseConnection extends ConnectionWrap {
                     );
             try {
                 final ClassLoaderResourceAccessor acc = new ClassLoaderResourceAccessor();
-                new Liquibase(chgpath, acc, database).update("");
+                new Liquibase(chgpath, acc, database).update(contexts);
                 acc.close();
                 return conn;
                 // @checkstyle MethodBodyCommentsCheck (1 line)

@@ -40,20 +40,35 @@ public final class UncheckedLiquibaseDataSource extends DataSourceWrap {
      * @param origin Origin
      * @param chgpath Change log path relative to resource accessor
      */
-    public UncheckedLiquibaseDataSource(final DataSource origin, final String chgpath) {
-        super(UncheckedLiquibaseDataSource.upgrade(origin, chgpath));
+    public UncheckedLiquibaseDataSource(
+        final DataSource origin, final String chgpath) {
+        this(origin, chgpath, "");
+    }
+
+    /**
+     * Ctor.
+     * <p>We run immediately the script.</p>
+     * @param origin Origin
+     * @param chgpath Change log path relative to resource accessor
+     * @param contexts Contexts
+     */
+    public UncheckedLiquibaseDataSource(
+        final DataSource origin, final String chgpath, final String contexts) {
+        super(UncheckedLiquibaseDataSource.upgrade(origin, chgpath, contexts));
     }
 
     /**
      * Upgrades database.
      * @param src Data source
      * @param chgpath Change log path
+     * @param contexts Contexts
      * @return Data source upgraded
      */
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
-    private static DataSource upgrade(final DataSource src, final String chgpath) {
+    private static DataSource upgrade(
+        final DataSource src, final String chgpath, final String contexts) {
         try {
-            new LiquibaseDataSource(src, chgpath);
+            new LiquibaseDataSource(src, chgpath, contexts);
             return src;
         } catch (final SQLException exe) {
             throw new IllegalStateException(exe);
