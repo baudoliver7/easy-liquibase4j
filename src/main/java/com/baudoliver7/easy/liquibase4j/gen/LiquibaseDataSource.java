@@ -44,24 +44,38 @@ public final class LiquibaseDataSource extends DataSourceWrap {
      */
     public LiquibaseDataSource(
         final DataSource origin, final String chgpath) throws SQLException {
-        super(LiquibaseDataSource.upgrade(origin, chgpath));
+        this(origin, chgpath, "");
+    }
+
+    /**
+     * Ctor.
+     * <p>We run immediately the script.</p>
+     * @param origin Origin
+     * @param chgpath Change log path relative to resource accessor
+     * @param contexts Contexts
+     * @throws SQLException If fails
+     */
+    public LiquibaseDataSource(
+        final DataSource origin, final String chgpath, final String contexts) throws SQLException {
+        super(LiquibaseDataSource.upgrade(origin, chgpath, contexts));
     }
 
     /**
      * Upgrades database.
      * @param src Data source
      * @param chgpath Change log path
+     * @param contexts Contexts
      * @return Data source upgraded
      * @throws SQLException If fails
      */
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private static DataSource upgrade(
-        final DataSource src, final String chgpath) throws SQLException {
+        final DataSource src, final String chgpath, final String contexts) throws SQLException {
         Connection connection = null;
         try {
             connection = src.getConnection();
             connection.setAutoCommit(false);
-            new LiquibaseConnection(connection, chgpath);
+            new LiquibaseConnection(connection, chgpath, contexts);
             connection.commit();
             return src;
         } catch (final SQLException exe) {
