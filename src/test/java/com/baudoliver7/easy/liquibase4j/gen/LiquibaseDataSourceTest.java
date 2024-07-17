@@ -27,7 +27,9 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import org.h2.jdbcx.JdbcDataSource;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
@@ -71,13 +73,39 @@ final class LiquibaseDataSourceTest {
         src.setUser("sa2");
         src.setPassword("pwd2");
         new LiquibaseDataSource(
-            src, "liquibase/db.changelog-master.xml", "admin"
+            src, "liquibase/db.changelog-master.xml", "admin", new LinkedHashMap<>()
         );
         try (Connection conn = src.getConnection()) {
             MatcherAssert.assertThat(
                 "Should contain table ad_person",
                 LiquibaseDataSourceTest.tableExists(conn, "ad_person"),
                 Matchers.is(false)
+            );
+            MatcherAssert.assertThat(
+                "Should contain table ad_user",
+                LiquibaseDataSourceTest.tableExists(conn, "ad_user"),
+                Matchers.is(true)
+            );
+        }
+    }
+
+    @Test
+    void generatesWithParameters() throws SQLException {
+        final JdbcDataSource src = new JdbcDataSource();
+        src.setUrl("jdbc:h2:mem:test3;DB_CLOSE_DELAY=-1");
+        src.setUser("sa3");
+        src.setPassword("pwd3");
+        final Map<String, Object> parameters = new LinkedHashMap<>();
+        parameters.put("person_table", "ad_person");
+        parameters.put("user_table", "ad_user");
+        new LiquibaseDataSource(
+            src, "liquibase/db.changelog-master-with-parameters.xml", "base", parameters
+        );
+        try (Connection conn = src.getConnection()) {
+            MatcherAssert.assertThat(
+                "Should contain table ad_person",
+                LiquibaseDataSourceTest.tableExists(conn, "ad_person"),
+                Matchers.is(true)
             );
             MatcherAssert.assertThat(
                 "Should contain table ad_user",

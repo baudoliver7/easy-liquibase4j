@@ -26,6 +26,8 @@ package com.baudoliver7.easy.liquibase4j.gen;
 import com.baudoliver7.jdbc.toolset.wrapper.DataSourceWrap;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.sql.DataSource;
 
 /**
@@ -44,7 +46,7 @@ public final class LiquibaseDataSource extends DataSourceWrap {
      */
     public LiquibaseDataSource(
         final DataSource origin, final String chgpath) throws SQLException {
-        this(origin, chgpath, "");
+        this(origin, chgpath, "", new LinkedHashMap<>());
     }
 
     /**
@@ -53,11 +55,13 @@ public final class LiquibaseDataSource extends DataSourceWrap {
      * @param origin Origin
      * @param chgpath Change log path relative to resource accessor
      * @param contexts Contexts
+     * @param parameters Parameters
      * @throws SQLException If fails
      */
     public LiquibaseDataSource(
-        final DataSource origin, final String chgpath, final String contexts) throws SQLException {
-        super(LiquibaseDataSource.upgrade(origin, chgpath, contexts));
+        final DataSource origin, final String chgpath, final String contexts, final Map<String, Object> parameters
+    ) throws SQLException {
+        super(LiquibaseDataSource.upgrade(origin, chgpath, contexts, parameters));
     }
 
     /**
@@ -65,17 +69,19 @@ public final class LiquibaseDataSource extends DataSourceWrap {
      * @param src Data source
      * @param chgpath Change log path
      * @param contexts Contexts
+     * @param parameters Parameters
      * @return Data source upgraded
      * @throws SQLException If fails
      */
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private static DataSource upgrade(
-        final DataSource src, final String chgpath, final String contexts) throws SQLException {
+        final DataSource src, final String chgpath, final String contexts, final Map<String, Object> parameters
+    ) throws SQLException {
         Connection connection = null;
         try {
             connection = src.getConnection();
             connection.setAutoCommit(false);
-            new LiquibaseConnection(connection, chgpath, contexts);
+            new LiquibaseConnection(connection, chgpath, contexts, parameters);
             connection.commit();
             return src;
         } catch (final SQLException exe) {

@@ -26,6 +26,8 @@ package com.baudoliver7.easy.liquibase4j.gen;
 import com.baudoliver7.jdbc.toolset.wrapper.ConnectionWrap;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import liquibase.Liquibase;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
@@ -48,7 +50,7 @@ public final class LiquibaseConnection extends ConnectionWrap {
      */
     public LiquibaseConnection(
         final Connection origin, final String chgpath) throws SQLException {
-        this(origin, chgpath, "");
+        this(origin, chgpath, "", new LinkedHashMap<>());
     }
 
     /**
@@ -57,11 +59,13 @@ public final class LiquibaseConnection extends ConnectionWrap {
      * @param origin Origin
      * @param chgpath Change log path relative to resource accessor
      * @param contexts Contexts
+     * @param parameters Parameters
      * @throws SQLException If fails
      */
     public LiquibaseConnection(
-        final Connection origin, final String chgpath, final String contexts) throws SQLException {
-        super(LiquibaseConnection.upgrade(origin, chgpath, contexts));
+        final Connection origin, final String chgpath, final String contexts, final Map<String, Object> parameters
+    ) throws SQLException {
+        super(LiquibaseConnection.upgrade(origin, chgpath, contexts, parameters));
     }
 
     /**
@@ -69,12 +73,14 @@ public final class LiquibaseConnection extends ConnectionWrap {
      * @param conn Connection
      * @param chgpath Change log path
      * @param contexts Contexts
+     * @param parameters Parameters
      * @return Connection upgraded
      * @throws SQLException If fails
      */
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private static Connection upgrade(
-        final Connection conn, final String chgpath, final String contexts) throws SQLException {
+        final Connection conn, final String chgpath, final String contexts, final Map<String, Object> parameters
+    ) throws SQLException {
         try {
             final liquibase.database.Database database =
                 DatabaseFactory.getInstance()
@@ -83,7 +89,11 @@ public final class LiquibaseConnection extends ConnectionWrap {
                     );
             try {
                 final ClassLoaderResourceAccessor acc = new ClassLoaderResourceAccessor();
-                new Liquibase(chgpath, acc, database).update(contexts);
+                final Liquibase liquibase = new Liquibase(chgpath, acc, database);
+                for (final Map.Entry<String, Object> item : parameters.entrySet()) {
+                    liquibase.setChangeLogParameter(item.getKey(), item.getValue());
+                }
+                liquibase.update(contexts);
                 acc.close();
                 return conn;
                 // @checkstyle MethodBodyCommentsCheck (1 line)
