@@ -25,6 +25,8 @@ package com.baudoliver7.easy.liquibase4j.gen;
 
 import com.baudoliver7.jdbc.toolset.wrapper.DataSourceWrap;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.sql.DataSource;
 
 /**
@@ -42,7 +44,7 @@ public final class UncheckedLiquibaseDataSource extends DataSourceWrap {
      */
     public UncheckedLiquibaseDataSource(
         final DataSource origin, final String chgpath) {
-        this(origin, chgpath, "");
+        this(origin, chgpath, "", new LinkedHashMap<>());
     }
 
     /**
@@ -51,10 +53,11 @@ public final class UncheckedLiquibaseDataSource extends DataSourceWrap {
      * @param origin Origin
      * @param chgpath Change log path relative to resource accessor
      * @param contexts Contexts
+     * @param parameters Parameters
      */
     public UncheckedLiquibaseDataSource(
-        final DataSource origin, final String chgpath, final String contexts) {
-        super(UncheckedLiquibaseDataSource.upgrade(origin, chgpath, contexts));
+        final DataSource origin, final String chgpath, final String contexts, final Map<String, Object> parameters) {
+        super(UncheckedLiquibaseDataSource.upgrade(origin, chgpath, contexts, parameters));
     }
 
     /**
@@ -62,13 +65,14 @@ public final class UncheckedLiquibaseDataSource extends DataSourceWrap {
      * @param src Data source
      * @param chgpath Change log path
      * @param contexts Contexts
+     * @param parameters parameters
      * @return Data source upgraded
      */
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private static DataSource upgrade(
-        final DataSource src, final String chgpath, final String contexts) {
+        final DataSource src, final String chgpath, final String contexts, final Map<String, Object> parameters) {
         try {
-            new LiquibaseDataSource(src, chgpath, contexts);
+            new LiquibaseDataSource(src, chgpath, contexts, parameters);
             return src;
         } catch (final SQLException exe) {
             throw new IllegalStateException(exe);
